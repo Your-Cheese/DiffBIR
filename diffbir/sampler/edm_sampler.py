@@ -1,26 +1,25 @@
-from typing import Literal, Dict, Optional, Callable
+from typing import Callable, Dict, Literal, Optional
+
 import numpy as np
 import torch
 
-from .sampler import Sampler
+from ..model.cldm import ControlLDM
+from ..utils.common import make_tiled_fn
 from .k_diffusion import (
+    append_dims,
+    sample_dpm_2,
+    sample_dpm_2_ancestral,
+    sample_dpmpp_2m,
+    sample_dpmpp_2m_sde,
+    sample_dpmpp_2s_ancestral,
+    sample_dpmpp_3m_sde,
+    sample_dpmpp_sde,
     sample_euler,
     sample_euler_ancestral,
     sample_heun,
-    sample_dpm_2,
-    sample_dpm_2_ancestral,
     sample_lms,
-    sample_dpm_fast,
-    sample_dpm_adaptive,
-    sample_dpmpp_2s_ancestral,
-    sample_dpmpp_sde,
-    sample_dpmpp_2m,
-    sample_dpmpp_2m_sde,
-    sample_dpmpp_3m_sde,
-    append_dims,
 )
-from ..model.cldm import ControlLDM
-from ..utils.common import make_tiled_fn, trace_vram_usage
+from .sampler import Sampler
 
 
 class EDMSampler(Sampler):
@@ -142,7 +141,7 @@ class EDMSampler(Sampler):
         model: ControlLDM,
         device: str,
         steps: int,
-        x_size: torch.Tuple[int],
+        x_size,
         cond: Dict[str, torch.Tensor],
         uncond: Dict[str, torch.Tensor],
         cfg_scale: float,

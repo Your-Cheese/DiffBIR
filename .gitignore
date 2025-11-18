@@ -7,7 +7,7 @@ __pycache__
 !install_env.sh
 /weights
 /temp
-/results
+/result
 .ipynb_checkpoints/
 /TODO.txt
 /deprecated
@@ -16,3 +16,4 @@ __pycache__
 /runs
 /tests
 /meta_files
+/testset

@@ -1,30 +1,29 @@
 import os
-from typing import overload, Generator, List
 from argparse import Namespace
+from typing import Generator, List, overload
 
 import numpy as np
-import torch
-from PIL import Image
-from omegaconf import OmegaConf
 import pandas as pd
+import torch
+from omegaconf import OmegaConf
+from PIL import Image
 
-from ..utils.common import (
-    instantiate_from_config,
-    load_model_from_url,
-    trace_vram_usage,
-    VRAMPeakMonitor,
-)
-from .pretrained_models import MODELS
-from ..pipeline import Pipeline
-from ..utils.cond_fn import MSEGuidance, WeightedMSEGuidance
 from ..model import ControlLDM, Diffusion
+from ..pipeline import Pipeline
 from ..utils.caption import (
-    LLaVACaptioner,
-    EmptyCaptioner,
-    RAMCaptioner,
     LLAVA_AVAILABLE,
     RAM_AVAILABLE,
+    EmptyCaptioner,
+    LLaVACaptioner,
+    RAMCaptioner,
 )
+from ..utils.common import (
+    VRAMPeakMonitor,
+    instantiate_from_config,
+    load_model_from_url,
+)
+from ..utils.cond_fn import MSEGuidance, WeightedMSEGuidance
+from .pretrained_models import MODELS
 
 
 class InferenceLoop:
@@ -47,7 +46,7 @@ class InferenceLoop:
 
     def load_cldm(self) -> None:
         self.cldm: ControlLDM = instantiate_from_config(
-            OmegaConf.load("configs/inference/cldm.yaml")
+            OmegaConf.load("DiffBIR/configs/inference/cldm.yaml")
         )
 
         # load pre-trained SD weight
@@ -78,7 +77,7 @@ class InferenceLoop:
             # v2.1
             control_weight = load_model_from_url(MODELS["v2.1"])
         self.cldm.load_controlnet_from_ckpt(control_weight)
-        print(f"load controlnet weight")
+        print("load controlnet weight")
         self.cldm.eval().to(self.args.device)
         cast_type = {
             "fp32": torch.float32,
@@ -89,9 +88,9 @@ class InferenceLoop:
 
         # load diffusion
         if self.args.version in ["v1", "v2"]:
-            config = "configs/inference/diffusion.yaml"
+            config = "DiffBIR/configs/inference/diffusion.yaml"
         else:
-            config = "configs/inference/diffusion_v2.1.yaml"
+            config = "DiffBIR/configs/inference/diffusion_v2.1.yaml"
         self.diffusion: Diffusion = instantiate_from_config(OmegaConf.load(config))
         self.diffusion.to(self.args.device)
 

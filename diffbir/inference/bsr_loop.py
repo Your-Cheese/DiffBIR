@@ -1,31 +1,30 @@
 import numpy as np
-from PIL import Image
 from omegaconf import OmegaConf
+from PIL import Image
 
-from .loop import InferenceLoop, MODELS
-from ..utils.common import (
-    instantiate_from_config,
-    load_model_from_url,
-    trace_vram_usage,
-)
+from ..model import RRDBNet, SwinIR
 from ..pipeline import (
     BSRNetPipeline,
     SwinIRPipeline,
 )
-from ..model import RRDBNet, SwinIR
+from ..utils.common import (
+    instantiate_from_config,
+    load_model_from_url,
+)
+from .loop import MODELS, InferenceLoop
 
 
 class BSRInferenceLoop(InferenceLoop):
 
     def load_cleaner(self) -> None:
         if self.args.version == "v1":
-            config = "configs/inference/swinir.yaml"
+            config = "DiffBIR/configs/inference/swinir.yaml"
             weight = MODELS["swinir_general"]
         elif self.args.version == "v2":
-            config = "configs/inference/bsrnet.yaml"
+            config = "DiffBIR/configs/inference/bsrnet.yaml"
             weight = MODELS["bsrnet"]
         else:
-            config = "configs/inference/swinir.yaml"
+            config = "DiffBIR/configs/inference/swinir.yaml"
             weight = MODELS["swinir_realesrgan"]
         self.cleaner: RRDBNet | SwinIR = instantiate_from_config(OmegaConf.load(config))
         model_weight = load_model_from_url(weight)

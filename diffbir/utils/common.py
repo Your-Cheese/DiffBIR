@@ -1,15 +1,15 @@
-from typing import Mapping, Any, Tuple, Callable, Dict, Literal
 import importlib
 import os
+from typing import Any, Callable, Dict, Literal, Mapping, Tuple
 from urllib.parse import urlparse
 
-import torch
-from torch import Tensor
-from torch.nn import functional as F
 import numpy as np
-from tqdm import tqdm
+import torch
 from PIL import Image, ImageDraw, ImageFont
+from torch import Tensor
 from torch.hub import download_url_to_file, get_dir
+from torch.nn import functional as F
+from tqdm import tqdm
 
 
 def get_obj_from_str(string: str, reload: bool = False) -> Any:
@@ -21,7 +21,7 @@ def get_obj_from_str(string: str, reload: bool = False) -> Any:
 
 
 def instantiate_from_config(config: Mapping[str, Any]) -> Any:
-    if not "target" in config:
+    if "target" not in config:
         raise KeyError("Expected key `target` to instantiate.")
     return get_obj_from_str(config["target"])(**config.get("params", dict()))
 
@@ -112,7 +112,7 @@ def load_file_from_url(url, model_dir=None, progress=True, file_name=None):
 
 def load_model_from_url(url: str) -> Dict[str, torch.Tensor]:
     sd_path = load_file_from_url(url, model_dir="weights")
-    sd = torch.load(sd_path, map_location="cpu")
+    sd = torch.load(sd_path, map_location="cpu", weights_only=True, mmap=True)
     if "state_dict" in sd:
         sd = sd["state_dict"]
     if list(sd.keys())[0].startswith("module"):
@@ -213,7 +213,7 @@ def make_tiled_fn(
 
         indices = sliding_windows(h, w, size, stride)
         pbar = tqdm(
-            indices, desc=f"Tiled Processing", disable=not progress, leave=False
+            indices, desc="Tiled Processing", disable=not progress, leave=False
         )
         for hi, hi_end, wi, wi_end in pbar:
             x_tile = x[..., hi:hi_end, wi:wi_end]
