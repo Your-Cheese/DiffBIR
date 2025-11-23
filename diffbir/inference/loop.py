@@ -133,19 +133,26 @@ class InferenceLoop:
 
     def load_lq(self) -> Generator[Image.Image, None, None]:
         img_exts = [".png", ".jpg", ".jpeg"]
-        assert os.path.isdir(
-            self.args.input
-        ), "Please put your low-quality images in a folder."
-        for file_name in sorted(os.listdir(self.args.input)):
-            stem, ext = os.path.splitext(file_name)
-            if ext not in img_exts:
-                print(f"{file_name} is not an image, continue")
-                continue
-            file_path = os.path.join(self.args.input, file_name)
+        if os.path.isfile(self.args.input):
+            file_path = self.args.input
+            stem, ext = os.path.splitext(os.path.basename(file_path))
             lq = Image.open(file_path).convert("RGB")
             print(f"load lq: {file_path}")
             self.loop_ctx["file_stem"] = stem
             yield lq
+        elif os.path.isdir(self.args.input):
+            for file_name in sorted(os.listdir(self.args.input)):
+                stem, ext = os.path.splitext(file_name)
+                if ext.lower() not in img_exts:
+                    print(f"{file_name} is not an image, continue")
+                    continue
+                file_path = os.path.join(self.args.input, file_name)
+                lq = Image.open(file_path).convert("RGB")
+                print(f"load lq: {file_path}")
+                self.loop_ctx["file_stem"] = stem
+                yield lq
+        else:
+            raise ValueError(f"Input {self.args.input} is neither a file nor a directory")
 
     def after_load_lq(self, lq: Image.Image) -> np.ndarray:
         return np.array(lq)
